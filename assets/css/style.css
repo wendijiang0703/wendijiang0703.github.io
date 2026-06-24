@@ -437,7 +437,9 @@ body[data-show-archived="1"] .layout-grid .feed-item[data-archived="true"] { dis
 .sidebar [data-archived="true"] { display: none; }
 body[data-show-archived="1"] .feed-item[data-archived="true"],
 body[data-show-archived="1"] .sidebar [data-archived="true"] { display: block; }
-.sidebar li[data-archived="true"] a { color: var(--text-faint); }
+/* Archived items render in the normal text color when they're visible
+   (i.e. under the "all" view or on an archived project's detail page).
+   No dimming — everything reads as a peer of the rest. */
 
 /* Sidebar tag-mode: when filtering by product/ux/graphic, hide year headers and
    non-matching projects. Show flat list of only matching projects. */
