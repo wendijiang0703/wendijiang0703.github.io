@@ -12,5 +12,8 @@ originals/
 notes.md
 notes_domain_later.md
 
+# Staging area for new photos to process (use scripts/ingest.py)
+incoming/
+
 # Logs
 *.log

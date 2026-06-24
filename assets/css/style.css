@@ -416,6 +416,41 @@ body[data-show-archived="1"] .feed-item[data-archived="true"],
 body[data-show-archived="1"] .sidebar [data-archived="true"] { display: block; }
 .sidebar li[data-archived="true"] a { color: var(--text-faint); }
 
+/* Sidebar tag-mode: when filtering by product/ux/graphic, hide year headers and
+   non-matching projects. Show flat list of only matching projects. */
+body[data-tag-mode="product"] .menu-year,
+body[data-tag-mode="product"] .menu-featured,
+body[data-tag-mode="ux"] .menu-year,
+body[data-tag-mode="ux"] .menu-featured,
+body[data-tag-mode="graphic"] .menu-year,
+body[data-tag-mode="graphic"] .menu-featured { display: none; }
+body[data-tag-mode="product"] .sidebar li[data-tags]:not([data-tags~="product"]),
+body[data-tag-mode="ux"] .sidebar li[data-tags]:not([data-tags~="ux"]),
+body[data-tag-mode="graphic"] .sidebar li[data-tags]:not([data-tags~="graphic"]) { display: none; }
+/* Numbered prefix on featured items doesn't make sense in tag-flat mode either */
+body[data-tag-mode="product"] .menu ul,
+body[data-tag-mode="ux"] .menu ul,
+body[data-tag-mode="graphic"] .menu ul { margin-bottom: 6px; }
+
+/* Award callout */
+.award {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 1.6rem;
+  padding: 5px 10px;
+  background: rgba(240, 107, 0, 0.08);
+  border: 1px solid rgba(240, 107, 0, 0.25);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+.award:hover { background: rgba(240, 107, 0, 0.16); }
+.award-icon { font-size: 0.9rem; line-height: 1; }
+
 /* ---------- Mobile drawer ---------- */
 .mobile-menu-toggle {
   display: none;

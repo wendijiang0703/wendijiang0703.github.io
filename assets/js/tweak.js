@@ -216,6 +216,79 @@
     panel.appendChild(row);
   });
 
+  // ----- Featured-in tag selector -----
+  const FEATURED_KEY = 'featured-overrides-v1';
+  const TAGS = ['product', 'ux', 'graphic'];
+
+  function getFeaturedOverrides() {
+    try { return JSON.parse(localStorage.getItem(FEATURED_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function setFeaturedOverrides(map) {
+    localStorage.setItem(FEATURED_KEY, JSON.stringify(map));
+    applyFeaturedToDom();
+    if (window.refreshTagSort) window.refreshTagSort();
+  }
+  function applyFeaturedToDom() {
+    const overrides = getFeaturedOverrides();
+    document.querySelectorAll('.feed-item').forEach((el) => {
+      const slug = el.dataset.slug;
+      if (overrides[slug] != null) {
+        el.dataset.featured = overrides[slug].join(' ');
+      }
+    });
+  }
+  // Apply on load (before tag sort runs)
+  applyFeaturedToDom();
+
+  const featuredHeader = document.createElement('h3');
+  featuredHeader.textContent = 'Featured in (per project)';
+  panel.appendChild(featuredHeader);
+
+  const featuredHint = document.createElement('div');
+  featuredHint.style.cssText = 'font-size: 10px; color: rgba(255,255,255,0.45); margin-bottom: 8px;';
+  featuredHint.textContent = 'Tick = this project shows LARGE in that tag view. Unticked = appears smaller below as "Other work".';
+  panel.appendChild(featuredHint);
+
+  const featuredOverrides = getFeaturedOverrides();
+
+  uniqueSlugs.forEach(({ slug, title }) => {
+    const item = document.querySelector(`.feed-item[data-slug="${slug}"]`);
+    if (!item) return;
+    // Initial state: override > server-rendered data-featured
+    const initial = featuredOverrides[slug] || (item.dataset.featured || '').split(/\s+/).filter(Boolean);
+    const row = document.createElement('div');
+    row.style.cssText = 'display: grid; grid-template-columns: 1fr repeat(3, auto); gap: 6px; align-items: center; padding: 3px 0; font-size: 11px; color: rgba(255,255,255,0.85);';
+    const name = document.createElement('span');
+    name.textContent = title;
+    name.style.cssText = 'overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+    row.appendChild(name);
+    TAGS.forEach((tag) => {
+      const wrap = document.createElement('label');
+      wrap.style.cssText = 'display: flex; align-items: center; gap: 2px; font-size: 9px; cursor: pointer; color: rgba(255,255,255,0.5);';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = initial.includes(tag);
+      cb.style.cssText = 'margin: 0; accent-color: #f06b00; width: 12px; height: 12px;';
+      cb.addEventListener('change', () => {
+        const cur = getFeaturedOverrides();
+        const list = cur[slug] || initial.slice();
+        const idx = list.indexOf(tag);
+        if (cb.checked && idx < 0) list.push(tag);
+        if (!cb.checked && idx >= 0) list.splice(idx, 1);
+        cur[slug] = list;
+        setFeaturedOverrides(cur);
+      });
+      const lab = document.createElement('span');
+      lab.textContent = tag[0].toUpperCase();
+      lab.title = tag;
+      wrap.appendChild(cb);
+      wrap.appendChild(lab);
+      row.appendChild(wrap);
+    });
+    panel.appendChild(row);
+  });
+
   // Buttons
   const buttons = document.createElement('div');
   buttons.className = 'tweak-buttons';
@@ -232,6 +305,9 @@
     lines.push('');
     lines.push('/* Archived projects */');
     lines.push(`/* ${JSON.stringify(getArchived())} */`);
+    lines.push('');
+    lines.push('/* Featured overrides */');
+    lines.push(`/* ${JSON.stringify(getFeaturedOverrides())} */`);
     const text = lines.join('\n');
     try {
       await navigator.clipboard.writeText(text);

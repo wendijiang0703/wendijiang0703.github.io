@@ -41,7 +41,8 @@ def render_sidebar(active: str | None) -> str:
         cls = ' class="active"' if slug == active else ''
         return f'<a href="/projects/{slug}.html"{cls}>{html.escape(title)}</a>'
     def li(slug, title):
-        return f'<li data-slug="{slug}">{link(slug, title)}</li>'
+        tags_attr = ' '.join(PROJECTS.get(slug, {}).get('tags', []) or [])
+        return f'<li data-slug="{slug}" data-tags="{tags_attr}">{link(slug, title)}</li>'
 
     parts = []
     parts.append(f'<div class="sidebar-brand"><a href="/">🪑 Wendi Jiang</a></div>')
@@ -240,6 +241,14 @@ def build_project(slug: str):
     if data.get('tags'): meta_bits.append(' / '.join(data['tags']))
     meta_line = f'<div class="project-meta">{" · ".join(meta_bits)}</div>' if meta_bits else ''
 
+    # Award callout (one or more)
+    awards_html = ''
+    for a in data.get('awards', []) or []:
+        awards_html += (
+            f'\n        <a class="award" href="{html.escape(a["url"])}" target="_blank" rel="noopener">'
+            f'<span class="award-icon">★</span> {html.escape(a["name"])} ↗</a>'
+        )
+
     body_text = paragraphs(desc)
     desc_block = f'''        <div class="project-body">
 {body_text}
@@ -247,7 +256,7 @@ def build_project(slug: str):
 
     body = f'''      <article class="project">
         <h1 class="project-title">{html.escape(title)}</h1>
-        {meta_line}
+        {meta_line}{awards_html}
 {desc_block}
         <div class="project-media">
 {media}

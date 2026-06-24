@@ -64,6 +64,13 @@ window.applyArchiveToDom = applyArchiveToDom; // tweak panel calls this
       document.body.dataset.showArchived = '';
     }
 
+    // Sidebar mode: when filtering by product/ux/graphic, hide year headers + non-matching projects
+    if (tag === 'product' || tag === 'ux' || tag === 'graphic') {
+      document.body.dataset.tagMode = tag;
+    } else {
+      document.body.dataset.tagMode = '';
+    }
+
     const archived = new Set(getArchived());
 
     if (!tag || tag === 'all') {
