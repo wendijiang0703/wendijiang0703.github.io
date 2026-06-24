@@ -75,32 +75,39 @@ window.applyArchiveToDom = applyArchiveToDom; // tweak panel calls this
 
     if (!tag || tag === 'all') {
       // Default + all: items in default order; archived hidden via CSS unless "all"
-      allItems.forEach((el) => primary.appendChild(el));
+      allItems.forEach((el) => {
+        el.style.display = '';
+        primary.appendChild(el);
+      });
       if (secondary) {
         Array.from(secondary.querySelectorAll('.feed-item')).forEach((el) => el.remove());
         secondary.hidden = true;
       }
     } else {
-      // Tag view: split into featured-for-tag (big) and others (small grid)
-      // Archived items are dropped entirely from tag-filtered views.
+      // Tag view: ONLY show projects featured-in this tag. Everything else lives
+      // under the "all" pill (which mirrors the default landing).
       const big = [];
-      const small = [];
+      const hidden = [];
       allItems.forEach((el) => {
-        if (archived.has(el.dataset.slug)) return;
         const featured = (el.dataset.featured || '').split(/\s+/);
-        if (featured.includes(tag)) big.push(el);
-        else small.push(el);
+        if (!archived.has(el.dataset.slug) && featured.includes(tag)) {
+          big.push(el);
+        } else {
+          hidden.push(el);
+        }
       });
-      // Archived items still need a home in the DOM tree (for restoring later)
-      const archivedItems = allItems.filter((el) => archived.has(el.dataset.slug));
+      // Big featured items first (in default order)
       big.forEach((el) => primary.appendChild(el));
-      archivedItems.forEach((el) => primary.appendChild(el)); // hidden via CSS
+      // Park the rest at the end of #feed-primary (hidden via CSS attribute)
+      hidden.forEach((el) => primary.appendChild(el));
       if (secondary) {
         Array.from(secondary.querySelectorAll('.feed-item')).forEach((el) => el.remove());
-        small.forEach((el) => secondary.appendChild(el));
-        secondary.hidden = small.length === 0;
-        if (label) label.textContent = 'Other work';
+        secondary.hidden = true;
       }
+      // Hide non-featured items via inline display none (no CSS rule needed since they're
+      // a moving target). Tag the body so we know we're in filtered mode.
+      hidden.forEach((el) => { el.style.display = 'none'; });
+      big.forEach((el) => { el.style.display = ''; });
     }
 
     if (updateUrl) {

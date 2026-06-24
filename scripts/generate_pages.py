@@ -43,8 +43,9 @@ def render_sidebar(active: str | None) -> str:
     def li(slug, title):
         data = PROJECTS.get(slug, {})
         tags_attr = ' '.join(data.get('tags', []) or [])
+        featured_attr = ' '.join(data.get('featured_in', []) or [])
         archived_attr = 'true' if data.get('archived') else 'false'
-        return f'<li data-slug="{slug}" data-tags="{tags_attr}" data-archived="{archived_attr}">{link(slug, title)}</li>'
+        return f'<li data-slug="{slug}" data-tags="{tags_attr}" data-featured="{featured_attr}" data-archived="{archived_attr}">{link(slug, title)}</li>'
 
     parts = []
     parts.append(f'<div class="sidebar-brand"><a href="/">🪑 Wendi Jiang</a></div>')

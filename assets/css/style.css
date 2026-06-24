@@ -424,9 +424,10 @@ body[data-tag-mode="ux"] .menu-year,
 body[data-tag-mode="ux"] .menu-featured,
 body[data-tag-mode="graphic"] .menu-year,
 body[data-tag-mode="graphic"] .menu-featured { display: none; }
-body[data-tag-mode="product"] .sidebar li[data-tags]:not([data-tags~="product"]),
-body[data-tag-mode="ux"] .sidebar li[data-tags]:not([data-tags~="ux"]),
-body[data-tag-mode="graphic"] .sidebar li[data-tags]:not([data-tags~="graphic"]) { display: none; }
+/* In tag mode, sidebar mirrors the FEATURED-IN list (matches the big cards on the feed exactly) */
+body[data-tag-mode="product"] .sidebar li[data-slug]:not([data-featured~="product"]),
+body[data-tag-mode="ux"] .sidebar li[data-slug]:not([data-featured~="ux"]),
+body[data-tag-mode="graphic"] .sidebar li[data-slug]:not([data-featured~="graphic"]) { display: none; }
 /* Numbered prefix on featured items doesn't make sense in tag-flat mode either */
 body[data-tag-mode="product"] .menu ul,
 body[data-tag-mode="ux"] .menu ul,
