@@ -41,8 +41,10 @@ def render_sidebar(active: str | None) -> str:
         cls = ' class="active"' if slug == active else ''
         return f'<a href="/projects/{slug}.html"{cls}>{html.escape(title)}</a>'
     def li(slug, title):
-        tags_attr = ' '.join(PROJECTS.get(slug, {}).get('tags', []) or [])
-        return f'<li data-slug="{slug}" data-tags="{tags_attr}">{link(slug, title)}</li>'
+        data = PROJECTS.get(slug, {})
+        tags_attr = ' '.join(data.get('tags', []) or [])
+        archived_attr = 'true' if data.get('archived') else 'false'
+        return f'<li data-slug="{slug}" data-tags="{tags_attr}" data-archived="{archived_attr}">{link(slug, title)}</li>'
 
     parts = []
     parts.append(f'<div class="sidebar-brand"><a href="/">🪑 Wendi Jiang</a></div>')
@@ -117,7 +119,8 @@ def feed_item(slug: str, title: str) -> str:
     year = data.get('year') or ''
     tag_attr = ' '.join(data.get('tags', []) or [])
     featured_attr = ' '.join(data.get('featured_in', []) or [])
-    return f'''      <a class="feed-item" data-slug="{slug}" data-tags="{tag_attr}" data-featured="{featured_attr}" data-year="{year}" href="/projects/{slug}.html">
+    archived_attr = 'true' if data.get('archived') else 'false'
+    return f'''      <a class="feed-item" data-slug="{slug}" data-tags="{tag_attr}" data-featured="{featured_attr}" data-year="{year}" data-archived="{archived_attr}" href="/projects/{slug}.html">
         <div class="feed-image"><img src="/assets/images/projects/{slug}/{cover}" alt="{html.escape(title)}" loading="lazy"></div>
         <div class="feed-caption">
           <span class="feed-title">{html.escape(title)}</span>

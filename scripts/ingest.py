@@ -90,10 +90,43 @@ def process_folder(slug: str):
         try: f.unlink()
         except Exception: pass
 
+def normalize_to_slug(folder_name: str) -> str:
+    """'the button' / 'the_button' / 'TheButton' → 'The-Button' if such a slug exists."""
+    import json
+    try:
+        c = json.load(open(ROOT / 'originals' / 'content.json'))
+        known = set(c['projects'].keys())
+    except Exception:
+        known = set()
+    # Exact match wins
+    if folder_name in known: return folder_name
+    # Otherwise: collapse separators + lowercase, then look for a slug that matches
+    key = re.sub(r'[\s_-]+', '', folder_name).lower()
+    for slug in known:
+        if re.sub(r'[\s_-]+', '', slug).lower() == key:
+            return slug
+    return folder_name  # fall back to original
+
 if __name__ == '__main__':
     if not INCOMING.exists():
         INCOMING.mkdir()
-    targets = [sys.argv[1]] if len(sys.argv) > 1 else [p.name for p in INCOMING.iterdir() if p.is_dir()]
-    for slug in targets:
+    if len(sys.argv) > 1:
+        raw_targets = [sys.argv[1]]
+    else:
+        raw_targets = [p.name for p in INCOMING.iterdir() if p.is_dir() and not p.name.startswith('.')]
+    for raw in raw_targets:
+        slug = normalize_to_slug(raw)
+        if slug != raw:
+            old_dir = INCOMING / raw
+            new_dir = INCOMING / slug
+            if not new_dir.exists():
+                old_dir.rename(new_dir)
+                print(f"renamed: {raw} -> {slug}")
+            else:
+                # Move files in if target already exists
+                for f in old_dir.iterdir():
+                    if not f.name.startswith('.'):
+                        shutil.move(str(f), str(new_dir / f.name))
+                old_dir.rmdir()
         process_folder(slug)
     print("\nDone. Run `python3 scripts/generate_pages.py` to rebuild pages.")
