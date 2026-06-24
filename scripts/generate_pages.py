@@ -48,7 +48,6 @@ def render_sidebar(active: str | None) -> str:
     for slug, title in FEATURED:
         parts.append(f'  <li>{link(slug, title)}</li>')
     parts.append('</ol>')
-    parts.append('<div class="menu-sep">and some graphic design…</div>')
     for year in YEAR_GROUPS:
         parts.append(f'<div class="menu-year">{year}</div>')
         parts.append('<ul>')
@@ -93,6 +92,7 @@ def layout(*, title: str, body: str, active: str | None = None) -> str:
     </main>
   </div>
   <script src="/assets/js/main.js?v={js_v}"></script>
+  <script src="/assets/js/tweak.js?v={vh('assets/js/tweak.js')}"></script>
 </body>
 </html>
 '''
@@ -113,7 +113,8 @@ def feed_item(slug: str, title: str) -> str:
     data = PROJECTS.get(slug, {})
     year = data.get('year') or ''
     tag_attr = ' '.join(data.get('tags', []) or [])
-    return f'''      <a class="feed-item" data-tags="{tag_attr}" data-year="{year}" href="/projects/{slug}.html">
+    featured_attr = ' '.join(data.get('featured_in', []) or [])
+    return f'''      <a class="feed-item" data-tags="{tag_attr}" data-featured="{featured_attr}" data-year="{year}" href="/projects/{slug}.html">
         <div class="feed-image"><img src="/assets/images/projects/{slug}/{cover}" alt="{html.escape(title)}" loading="lazy"></div>
         <div class="feed-caption">
           <span class="feed-title">{html.escape(title)}</span>
@@ -141,16 +142,26 @@ def build_index():
         <a href="/" data-tag="">all</a>
         {pills}
       </div>
-      <section class="feed">
+      <section class="feed" id="feed-primary">
 {chr(10).join(items)}
+      </section>
+      <section class="feed-secondary" id="feed-secondary" hidden>
+        <div class="feed-secondary-label">Other work</div>
       </section>'''
     (ROOT / 'index.html').write_text(layout(title='Wendi Jiang — Design', body=body, active='index'))
     print(f"  index.html ({len(items)} items)")
 
 def build_about():
     text = PROJECTS.get('About', {}).get('description', '')
+    portrait_imgs = project_images('About')
+    portrait_html = ''
+    if portrait_imgs:
+        portrait_html = f'''        <div class="about-portrait">
+          <img src="/assets/images/projects/About/{portrait_imgs[0]}" alt="Wendi Jiang">
+        </div>'''
     body = f'''      <article class="project about">
         <h1 class="project-title">About</h1>
+{portrait_html}
         <div class="project-body">
 {paragraphs(text) if text else '          <p>About content goes here.</p>'}
         </div>
@@ -177,11 +188,18 @@ def build_project(slug: str):
     imgs = project_images(slug)
     media_parts = []
     if video:
+        # Convert /embed/ID to a watch URL for the "open on YouTube" fallback link
+        m = re.search(r'/embed/([A-Za-z0-9_-]+)', video)
+        yt_id = m.group(1) if m else None
+        watch_url = f'https://www.youtube.com/watch?v={yt_id}' if yt_id else video
         media_parts.append(
-            f'        <div class="video-wrap"><iframe src="{html.escape(video)}" '
+            f'''        <div>
+          <div class="video-wrap"><iframe src="{html.escape(video)}" '''
             f'title="{html.escape(title)} video" frameborder="0" '
             f'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" '
-            f'allowfullscreen></iframe></div>'
+            f'allowfullscreen></iframe></div>\n'
+            f'          <a class="video-link" href="{html.escape(watch_url)}" target="_blank" rel="noopener">Open on YouTube ↗</a>\n'
+            f'        </div>'
         )
     for fn in imgs:
         media_parts.append(
