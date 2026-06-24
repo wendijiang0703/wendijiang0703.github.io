@@ -11,6 +11,9 @@
 
   // Each row: [cssVar, label, min, max, step, unit]
   const GROUPS = [
+    ['Color', [
+      ['--accent', 'Accent (scrollbar + active link)', null, null, null, 'color'],
+    ]],
     ['Layout', [
       ['--sidebar-w', 'Sidebar width', 160, 360, 4, 'px'],
       ['--sidebar-gap', 'Sidebar→main gap', 24, 160, 4, 'px'],
@@ -107,6 +110,27 @@
       row.appendChild(valEl);
 
       const input = document.createElement('input');
+
+      if (unit === 'color') {
+        input.type = 'color';
+        input.style.cssText = 'width: 100%; height: 28px; padding: 0; border: 0; background: transparent; cursor: pointer;';
+        const computed = cs.getPropertyValue(name).trim() || '#f06b00';
+        const initial = saved[name] || computed;
+        input.value = initial;
+        valEl.textContent = initial;
+        root.style.setProperty(name, initial);
+        input.addEventListener('input', () => {
+          root.style.setProperty(name, input.value);
+          valEl.textContent = input.value;
+          saved[name] = input.value;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+        });
+        row.appendChild(input);
+        panel.appendChild(row);
+        inputs.push({ name, input, valEl, unit });
+        return;
+      }
+
       input.type = 'range';
       input.min = min; input.max = max; input.step = step;
 
@@ -138,6 +162,60 @@
     });
   });
 
+  // ----- Archive panel -----
+  const ARCHIVE_KEY = 'archived-slugs-v1';
+  function getArchived() {
+    try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || '[]'); }
+    catch { return []; }
+  }
+  function setArchived(list) {
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list));
+    if (window.applyArchiveToDom) window.applyArchiveToDom();
+    if (window.refreshTagSort) window.refreshTagSort();
+  }
+
+  // Gather all project slugs from the sidebar
+  const projectSlugs = Array.from(document.querySelectorAll('.sidebar li[data-slug]')).map((li) => ({
+    slug: li.dataset.slug,
+    title: li.querySelector('a')?.textContent?.trim() || li.dataset.slug,
+  }));
+  // Dedupe by slug while preserving order
+  const seen = new Set();
+  const uniqueSlugs = projectSlugs.filter((p) => {
+    if (seen.has(p.slug)) return false;
+    seen.add(p.slug); return true;
+  });
+
+  const archiveHeader = document.createElement('h3');
+  archiveHeader.textContent = 'Archive projects';
+  panel.appendChild(archiveHeader);
+
+  const archiveHint = document.createElement('div');
+  archiveHint.style.cssText = 'font-size: 10px; color: rgba(255,255,255,0.45); margin-bottom: 6px;';
+  archiveHint.textContent = 'Checked = hidden from page + sidebar. Visible again via "all" pill.';
+  panel.appendChild(archiveHint);
+
+  const archived = new Set(getArchived());
+  uniqueSlugs.forEach(({ slug, title }) => {
+    const row = document.createElement('label');
+    row.style.cssText = 'display: flex; gap: 8px; align-items: center; padding: 2px 0; font-size: 11px; color: rgba(255,255,255,0.85); cursor: pointer;';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = archived.has(slug);
+    cb.style.accentColor = '#f06b00';
+    cb.addEventListener('change', () => {
+      const current = new Set(getArchived());
+      if (cb.checked) current.add(slug);
+      else current.delete(slug);
+      setArchived(Array.from(current));
+    });
+    const txt = document.createElement('span');
+    txt.textContent = title;
+    row.appendChild(cb);
+    row.appendChild(txt);
+    panel.appendChild(row);
+  });
+
   // Buttons
   const buttons = document.createElement('div');
   buttons.className = 'tweak-buttons';
@@ -147,9 +225,13 @@
   copyBtn.addEventListener('click', async () => {
     const lines = ['/* Wendi tweak values */', ':root {'];
     inputs.forEach(({ name, input, unit }) => {
-      lines.push(`  ${name}: ${input.value}${unit};`);
+      const v = unit === 'color' ? input.value : `${input.value}${unit}`;
+      lines.push(`  ${name}: ${v};`);
     });
     lines.push('}');
+    lines.push('');
+    lines.push('/* Archived projects */');
+    lines.push(`/* ${JSON.stringify(getArchived())} */`);
     const text = lines.join('\n');
     try {
       await navigator.clipboard.writeText(text);

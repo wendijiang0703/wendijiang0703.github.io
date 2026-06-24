@@ -40,19 +40,21 @@ def render_sidebar(active: str | None) -> str:
     def link(slug, title):
         cls = ' class="active"' if slug == active else ''
         return f'<a href="/projects/{slug}.html"{cls}>{html.escape(title)}</a>'
+    def li(slug, title):
+        return f'<li data-slug="{slug}">{link(slug, title)}</li>'
 
     parts = []
     parts.append(f'<div class="sidebar-brand"><a href="/">🪑 Wendi Jiang</a></div>')
     parts.append('<nav class="menu" aria-label="Site">')
     parts.append('<ol class="menu-featured">')
     for slug, title in FEATURED:
-        parts.append(f'  <li>{link(slug, title)}</li>')
+        parts.append(f'  {li(slug, title)}')
     parts.append('</ol>')
     for year in YEAR_GROUPS:
         parts.append(f'<div class="menu-year">{year}</div>')
         parts.append('<ul>')
         for slug, title in YEAR_GROUPS[year]:
-            parts.append(f'  <li>{link(slug, title)}</li>')
+            parts.append(f'  {li(slug, title)}')
         parts.append('</ul>')
     about_cls = ' class="active"' if active == 'About' else ''
     parts.append(f'<div class="menu-about"><a href="/about.html"{about_cls}>About</a></div>')
@@ -114,7 +116,7 @@ def feed_item(slug: str, title: str) -> str:
     year = data.get('year') or ''
     tag_attr = ' '.join(data.get('tags', []) or [])
     featured_attr = ' '.join(data.get('featured_in', []) or [])
-    return f'''      <a class="feed-item" data-tags="{tag_attr}" data-featured="{featured_attr}" data-year="{year}" href="/projects/{slug}.html">
+    return f'''      <a class="feed-item" data-slug="{slug}" data-tags="{tag_attr}" data-featured="{featured_attr}" data-year="{year}" href="/projects/{slug}.html">
         <div class="feed-image"><img src="/assets/images/projects/{slug}/{cover}" alt="{html.escape(title)}" loading="lazy"></div>
         <div class="feed-caption">
           <span class="feed-title">{html.escape(title)}</span>
@@ -138,9 +140,8 @@ def build_index():
     )
 
     body = f'''      <div class="feed-controls">
-        <span class="label">sort</span>
-        <a href="/" data-tag="">all</a>
         {pills}
+        <a href="?tag=all" data-tag="all">all</a>
       </div>
       <section class="feed" id="feed-primary">
 {chr(10).join(items)}
@@ -186,6 +187,9 @@ def build_project(slug: str):
             desc = rest.strip()
 
     imgs = project_images(slug)
+    use_carousel = bool(data.get('carousel'))
+    external_link = data.get('external_link')
+    external_label = data.get('external_label', 'Open ↗')
     media_parts = []
     if video:
         # Convert /embed/ID to a watch URL for the "open on YouTube" fallback link
@@ -201,10 +205,34 @@ def build_project(slug: str):
             f'          <a class="video-link" href="{html.escape(watch_url)}" target="_blank" rel="noopener">Open on YouTube ↗</a>\n'
             f'        </div>'
         )
-    for fn in imgs:
-        media_parts.append(
-            f'        <img src="/assets/images/projects/{slug}/{fn}" alt="" loading="lazy">'
+    if use_carousel and imgs:
+        slides = '\n'.join(
+            f'          <div class="carousel-slide"><img src="/assets/images/projects/{slug}/{fn}" alt="" loading="lazy"></div>'
+            for fn in imgs
         )
+        dots = '\n'.join(
+            f'          <button class="carousel-dot{" active" if i == 0 else ""}" data-i="{i}" aria-label="Go to slide {i+1}"></button>'
+            for i in range(len(imgs))
+        )
+        media_parts.append(f'''        <div class="carousel" data-count="{len(imgs)}">
+          <div class="carousel-track">
+{slides}
+          </div>
+          <button class="carousel-arrow prev" aria-label="Previous">‹</button>
+          <button class="carousel-arrow next" aria-label="Next">›</button>
+          <div class="carousel-dots">
+{dots}
+          </div>
+        </div>''')
+    else:
+        for i, fn in enumerate(imgs):
+            img_tag = f'<img src="/assets/images/projects/{slug}/{fn}" alt="" loading="lazy">'
+            if i == 0 and external_link:
+                media_parts.append(
+                    f'        <a class="external-link-img" href="{html.escape(external_link)}" target="_blank" rel="noopener" data-label="{html.escape(external_label)}">{img_tag}</a>'
+                )
+            else:
+                media_parts.append(f'        {img_tag}')
     media = '\n'.join(media_parts)
 
     meta_bits = []
