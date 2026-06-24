@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+.claude/settings.local.json
+
+# Reference material from old Cargo site — kept locally, not deployed
+cargo-snapshot/
+originals/
+notes.md
+notes_domain_later.md
+
+# Logs
+*.log
