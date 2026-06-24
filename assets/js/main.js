@@ -45,69 +45,39 @@ window.applyArchiveToDom = applyArchiveToDom; // tweak panel calls this
 
 (function tagSort() {
   const controls = document.querySelector('.feed-controls');
-  const primary = document.getElementById('feed-primary');
-  const secondary = document.getElementById('feed-secondary');
-  const label = secondary && secondary.querySelector('.feed-secondary-label');
-  if (!controls || !primary) return;
+  const layoutGrid = document.getElementById('layout-grid');
+  const bigFeed = document.getElementById('feed-primary');
+  if (!controls) return;
 
-  const allItems = Array.from(primary.querySelectorAll('.feed-item'));
+  const bigItems = bigFeed ? Array.from(bigFeed.querySelectorAll('.feed-item')) : [];
 
   function applyTag(tag, { updateUrl = false } = {}) {
     controls.querySelectorAll('a').forEach((a) => {
       a.classList.toggle('active', (a.dataset.tag || '') === (tag || ''));
     });
 
-    // "all" mode: show everything including archived
-    if (tag === 'all') {
-      document.body.dataset.showArchived = '1';
-    } else {
-      document.body.dataset.showArchived = '';
-    }
+    // "all" mode: show archived items in the year-grouped grid
+    document.body.dataset.showArchived = (tag === 'all') ? '1' : '';
+    // Tag mode drives sidebar filtering and which layout is visible
+    const isTagMode = (tag === 'product' || tag === 'ux' || tag === 'graphic');
+    document.body.dataset.tagMode = isTagMode ? tag : '';
 
-    // Sidebar mode: when filtering by product/ux/graphic, hide year headers + non-matching projects
-    if (tag === 'product' || tag === 'ux' || tag === 'graphic') {
-      document.body.dataset.tagMode = tag;
-    } else {
-      document.body.dataset.tagMode = '';
-    }
-
-    const archived = new Set(getArchived());
-
-    if (!tag || tag === 'all') {
-      // Default + all: items in default order; archived hidden via CSS unless "all"
-      allItems.forEach((el) => {
-        el.style.display = '';
-        primary.appendChild(el);
-      });
-      if (secondary) {
-        Array.from(secondary.querySelectorAll('.feed-item')).forEach((el) => el.remove());
-        secondary.hidden = true;
+    if (isTagMode) {
+      // Hide the year-grouped grid, show big-card feed with only featured projects
+      if (layoutGrid) layoutGrid.hidden = true;
+      if (bigFeed) {
+        bigFeed.hidden = false;
+        const archived = new Set(getArchived());
+        bigItems.forEach((el) => {
+          const featured = (el.dataset.featured || '').split(/\s+/);
+          const show = !archived.has(el.dataset.slug) && featured.includes(tag);
+          el.style.display = show ? '' : 'none';
+        });
       }
     } else {
-      // Tag view: ONLY show projects featured-in this tag. Everything else lives
-      // under the "all" pill (which mirrors the default landing).
-      const big = [];
-      const hidden = [];
-      allItems.forEach((el) => {
-        const featured = (el.dataset.featured || '').split(/\s+/);
-        if (!archived.has(el.dataset.slug) && featured.includes(tag)) {
-          big.push(el);
-        } else {
-          hidden.push(el);
-        }
-      });
-      // Big featured items first (in default order)
-      big.forEach((el) => primary.appendChild(el));
-      // Park the rest at the end of #feed-primary (hidden via CSS attribute)
-      hidden.forEach((el) => primary.appendChild(el));
-      if (secondary) {
-        Array.from(secondary.querySelectorAll('.feed-item')).forEach((el) => el.remove());
-        secondary.hidden = true;
-      }
-      // Hide non-featured items via inline display none (no CSS rule needed since they're
-      // a moving target). Tag the body so we know we're in filtered mode.
-      hidden.forEach((el) => { el.style.display = 'none'; });
-      big.forEach((el) => { el.style.display = ''; });
+      // Default + all: show year-grouped grid; hide big feed
+      if (layoutGrid) layoutGrid.hidden = false;
+      if (bigFeed) bigFeed.hidden = true;
     }
 
     if (updateUrl) {

@@ -151,10 +151,6 @@ h1, h2, h3, p { margin: 0; padding: 0; font-weight: 400; }
   padding: 0;
 }
 
-.menu-featured { counter-reset: feat; margin-bottom: var(--sidebar-section-gap); }
-.menu-featured li { counter-increment: feat; margin: 0 0 var(--sidebar-item-gap); }
-.menu-featured li a::before { content: counter(feat) ". "; color: var(--text); }
-
 .menu-year {
   font-family: var(--font-sans);
   color: var(--text-faint);
@@ -201,12 +197,39 @@ h1, h2, h3, p { margin: 0; padding: 0; font-weight: 400; }
 .feed-controls a:hover { color: var(--text); }
 .feed-controls a.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* ---------- Homepage feed ---------- */
+/* ---------- Homepage: year-grouped small-thumbnail grid (default + all view) ---------- */
+.layout-grid { display: block; }
+.layout-grid[hidden] { display: none; }
+.year-section { margin-bottom: 3.5rem; }
+.year-heading {
+  font-family: var(--font-mono);
+  font-size: var(--sidebar-year-size);
+  font-weight: 400;
+  color: var(--text-faint);
+  margin-bottom: 1rem;
+  letter-spacing: 0.04em;
+}
+.thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--feed-secondary-cols), minmax(0, 1fr));
+  gap: var(--feed-secondary-gap);
+}
+.thumb-grid .feed-item { width: 100%; }
+.thumb-grid .feed-image { aspect-ratio: 4 / 3; overflow: hidden; }
+.thumb-grid .feed-image img { width: 100%; height: 100%; object-fit: cover; }
+.thumb-grid .feed-title { font-size: var(--feed-secondary-title-size); }
+.thumb-grid .feed-year { display: none; }
+/* Hide archived items in default view; show under "all" */
+.layout-grid .feed-item[data-archived="true"] { display: none; }
+body[data-show-archived="1"] .layout-grid .feed-item[data-archived="true"] { display: block; }
+
+/* ---------- Big-card feed (tag mode only — product / ux / graphic) ---------- */
 .feed {
   display: flex;
   flex-direction: column;
   gap: var(--feed-gap);
 }
+.feed[hidden] { display: none; }
 .feed-item { display: block; width: 100%; }
 
 .feed-image {

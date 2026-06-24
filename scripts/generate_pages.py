@@ -50,10 +50,7 @@ def render_sidebar(active: str | None) -> str:
     parts = []
     parts.append(f'<div class="sidebar-brand"><a href="/">🪑 Wendi Jiang</a></div>')
     parts.append('<nav class="menu" aria-label="Site">')
-    parts.append('<ol class="menu-featured">')
-    for slug, title in FEATURED:
-        parts.append(f'  {li(slug, title)}')
-    parts.append('</ol>')
+    # Year-grouped only — no more numbered featured list
     for year in YEAR_GROUPS:
         parts.append(f'<div class="menu-year">{year}</div>')
         parts.append('<ul>')
@@ -131,31 +128,48 @@ def feed_item(slug: str, title: str) -> str:
 
 # ---------- Page builders ----------
 def build_index():
-    # Build feed in default order: featured first (which already includes the chair series), then year-grouped projects
-    items = []
-    for slug, title in FEATURED:
-        items.append(feed_item(slug, title))
-    for year, projects in YEAR_GROUPS.items():
-        for slug, title in projects:
-            items.append(feed_item(slug, title))
-    items = [x for x in items if x]
+    # Two layouts: year-grouped small thumb grid (default + all) and big-card
+    # single-column (tag mode). JS swaps which one is visible.
 
     pills = '\n          '.join(
         f'<a href="?tag={t}" data-tag="{t}">{t}</a>' for t in TAG_ORDER
     )
 
+    # Year-grouped grid (small thumbs)
+    year_sections = []
+    for year, projects in YEAR_GROUPS.items():
+        items = []
+        for slug, title in projects:
+            it = feed_item(slug, title)
+            if it: items.append(it)
+        if not items: continue
+        year_sections.append(f'''      <section class="year-section" data-year="{year}">
+        <h2 class="year-heading">{year}</h2>
+        <div class="thumb-grid">
+{chr(10).join(items)}
+        </div>
+      </section>''')
+
+    # Big-card linear feed (used in tag mode). All projects, JS hides non-featured.
+    all_items = []
+    for year, projects in YEAR_GROUPS.items():
+        for slug, title in projects:
+            it = feed_item(slug, title)
+            if it: all_items.append(it)
+
     body = f'''      <div class="feed-controls">
         {pills}
         <a href="?tag=all" data-tag="all">all</a>
       </div>
-      <section class="feed" id="feed-primary">
-{chr(10).join(items)}
-      </section>
-      <section class="feed-secondary" id="feed-secondary" hidden>
-        <div class="feed-secondary-label">Other work</div>
+      <div class="layout-grid" id="layout-grid">
+{chr(10).join(year_sections)}
+      </div>
+      <section class="feed" id="feed-primary" hidden>
+{chr(10).join(all_items)}
       </section>'''
     (ROOT / 'index.html').write_text(layout(title='Wendi Jiang — Design', body=body, active='index'))
-    print(f"  index.html ({len(items)} items)")
+    total = sum(1 for ys in year_sections)
+    print(f"  index.html ({total} year sections, {len(all_items)} total items)")
 
 def build_about():
     text = PROJECTS.get('About', {}).get('description', '')

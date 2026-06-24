@@ -42,7 +42,7 @@
       ['--feed-year-size', 'Year tag size', 0.7, 1.2, 0.025, 'rem'],
       ['--feed-caption-gap', 'Image → caption gap', 0.3, 2.5, 0.05, 'rem'],
     ]],
-    ['Secondary projects (tag view)', [
+    ['Year-grouped thumbnail grid (default + all view)', [
       ['--feed-secondary-cols', 'Columns', 2, 5, 1, ''],
       ['--feed-secondary-gap', 'Grid gap', 0.5, 3, 0.1, 'rem'],
       ['--feed-secondary-title-size', 'Title size', 0.7, 1.3, 0.025, 'rem'],
@@ -231,7 +231,8 @@
   }
   function applyFeaturedToDom() {
     const overrides = getFeaturedOverrides();
-    document.querySelectorAll('.feed-item').forEach((el) => {
+    // Apply to BOTH feed-items AND sidebar entries so they stay in sync
+    document.querySelectorAll('.feed-item, .sidebar li[data-slug]').forEach((el) => {
       const slug = el.dataset.slug;
       if (overrides[slug] != null) {
         el.dataset.featured = overrides[slug].join(' ');
