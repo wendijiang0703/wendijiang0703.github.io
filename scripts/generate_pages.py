@@ -48,7 +48,7 @@ def render_sidebar(active: str | None) -> str:
         return f'<li data-slug="{slug}" data-tags="{tags_attr}" data-featured="{featured_attr}" data-archived="{archived_attr}">{link(slug, title)}</li>'
 
     parts = []
-    parts.append(f'<div class="sidebar-brand"><a href="/">🪑 Wendi Jiang</a></div>')
+    parts.append(f'<div class="sidebar-brand"><a href="/">Wendi Jiang</a></div>')
     parts.append('<nav class="menu" aria-label="Site">')
     # Year-grouped only — no more numbered featured list
     for year in YEAR_GROUPS:

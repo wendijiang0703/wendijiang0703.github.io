@@ -34,6 +34,7 @@
     ['Sort pills', [
       ['--pill-size', 'Pill size', 0.7, 1.3, 0.025, 'rem'],
       ['--pill-gap', 'Pill gap', 0.5, 3.5, 0.1, 'rem'],
+      ['--pills-top-padding', 'Vertical offset (align with brand)', 8, 100, 1, 'px'],
     ]],
     ['Homepage feed', [
       ['--feed-gap', 'Gap between projects', 1, 10, 0.25, 'rem'],

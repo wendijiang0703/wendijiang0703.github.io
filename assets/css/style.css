@@ -53,6 +53,7 @@
   /* Sort pills */
   --pill-size: 0.7rem;
   --pill-gap: 2rem;
+  --pills-top-padding: 44px;     /* vertical offset to align with brand baseline */
 
   /* Homepage feed */
   --feed-gap: 4.25rem;
@@ -177,7 +178,7 @@ h1, h2, h3, p { margin: 0; padding: 0; font-weight: 400; }
   max-width: var(--main-max);
 }
 
-/* ---------- Sort pills — sticky on every page ---------- */
+/* ---------- Sort pills — sticky on every page, aligned with brand baseline ---------- */
 .feed-controls {
   position: sticky;
   top: 0;
@@ -186,7 +187,7 @@ h1, h2, h3, p { margin: 0; padding: 0; font-weight: 400; }
   gap: var(--pill-gap);
   align-items: baseline;
   margin: calc(var(--page-pad-y) * -1) calc(var(--page-pad-x) * -1) 2.5rem;
-  padding: calc(var(--page-pad-y) * 0.6) var(--page-pad-x);
+  padding: var(--pills-top-padding) var(--page-pad-x) 1.2rem;
   background: var(--bg);
   font-family: var(--font-mono);
   font-size: var(--pill-size);
@@ -532,27 +533,34 @@ body[data-tag-mode="graphic"] .menu ul { margin-bottom: 6px; }
   :root {
     --page-pad-x: 22px;
     --page-pad-y: 22px;
+    --pills-top-padding: 16px;
+    --sidebar-brand-size: 1.2rem;
   }
-  .app { display: block; padding: 16px var(--page-pad-x) 64px; }
+  .app { display: block; padding: 0 var(--page-pad-x) 64px; }
   .main { max-width: 100%; }
   .feed { gap: 3rem; }
-  .feed-secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .mobile-menu-toggle { display: block; }
+  .thumb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* No hamburger, no slide-out menu, no nav list — minimal on mobile.
+     The brand and the sticky pills are the only navigation. */
+  .mobile-menu-toggle { display: none; }
   .sidebar {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(320px, 88vw);
-    max-height: 100vh;
-    padding: 56px 24px 24px;
-    background: #fff;
-    box-shadow: -16px 0 32px rgba(0, 0, 0, 0.08);
-    transform: translateX(100%);
-    transition: transform 240ms ease;
-    z-index: 15;
+    position: static;
+    width: 100%;
+    max-height: none;
+    height: auto;
+    padding: 16px 0 0;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
   }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar-brand { margin-bottom: 0; }
+  .sidebar .menu { display: none; }
+  /* Pills sit just below the brand with tight padding */
+  .feed-controls {
+    margin: 0 calc(var(--page-pad-x) * -1) 1.5rem;
+    padding: var(--pills-top-padding) var(--page-pad-x) 1rem;
+  }
   .project-title { font-size: 1.5rem; }
 }
 
