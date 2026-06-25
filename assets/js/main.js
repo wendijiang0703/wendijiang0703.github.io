@@ -43,70 +43,54 @@ window.applyArchiveToDom = applyArchiveToDom; // tweak panel calls this
   });
 })();
 
-(function tagSort() {
-  const controls = document.querySelector('.feed-controls');
+// Tag application: works on every page. Sets body.dataset attributes that
+// CSS uses to drive both the sidebar filter and (on the homepage) the main
+// content layout. No DOM moves — single source of truth.
+function applyTagFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const tag = (params.get('tag') || '').toLowerCase();
+  document.body.dataset.showArchived = (tag === 'all') ? '1' : '';
+  const isTagMode = (tag === 'product' || tag === 'ux' || tag === 'graphic');
+  document.body.dataset.tagMode = isTagMode ? tag : '';
+  document.querySelectorAll('.feed-controls a').forEach((a) => {
+    a.classList.toggle('active', (a.dataset.tag || '') === tag);
+  });
+}
+applyTagFromUrl();
+window.refreshTagSort = applyTagFromUrl;
+
+(function homepageTagPills() {
   const layoutGrid = document.getElementById('layout-grid');
-  const bigFeed = document.getElementById('feed-primary');
-  if (!controls) return;
-  // On non-homepage pages, pills are pure navigation: let the browser follow
-  // their href to /?tag=X. Don't intercept clicks.
-  if (!layoutGrid && !bigFeed) return;
-
-  const bigItems = bigFeed ? Array.from(bigFeed.querySelectorAll('.feed-item')) : [];
-
-  function applyTag(tag, { updateUrl = false } = {}) {
-    controls.querySelectorAll('a').forEach((a) => {
-      a.classList.toggle('active', (a.dataset.tag || '') === (tag || ''));
-    });
-
-    // "all" mode: show archived items in the year-grouped grid
-    document.body.dataset.showArchived = (tag === 'all') ? '1' : '';
-    // Tag mode drives sidebar filtering and which layout is visible
-    const isTagMode = (tag === 'product' || tag === 'ux' || tag === 'graphic');
-    document.body.dataset.tagMode = isTagMode ? tag : '';
-
-    if (isTagMode) {
-      // Hide the year-grouped grid, show big-card feed with only featured projects
-      if (layoutGrid) layoutGrid.hidden = true;
-      if (bigFeed) {
-        bigFeed.hidden = false;
-        const archived = new Set(getArchived());
-        bigItems.forEach((el) => {
-          const featured = (el.dataset.featured || '').split(/\s+/);
-          const show = !archived.has(el.dataset.slug) && featured.includes(tag);
-          el.style.display = show ? '' : 'none';
-        });
-      }
-    } else {
-      // Default + all: show year-grouped grid; hide big feed
-      if (layoutGrid) layoutGrid.hidden = false;
-      if (bigFeed) bigFeed.hidden = true;
-    }
-
-    if (updateUrl) {
+  const controls = document.querySelector('.feed-controls');
+  if (!controls || !layoutGrid) return;  // only on homepage
+  controls.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tag = a.dataset.tag || '';
       const url = new URL(window.location);
       if (tag) url.searchParams.set('tag', tag);
       else url.searchParams.delete('tag');
       history.replaceState(null, '', url);
-    }
-  }
-
-  // Expose so tweak panel can re-run after archive changes
-  window.refreshTagSort = () => {
-    const params = new URLSearchParams(window.location.search);
-    applyTag((params.get('tag') || '').toLowerCase());
-  };
-
-  controls.querySelectorAll('a').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      applyTag(a.dataset.tag || '', { updateUrl: true });
+      applyTagFromUrl();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   });
+})();
 
-  const params = new URLSearchParams(window.location.search);
-  applyTag((params.get('tag') || '').toLowerCase());
+// Preserve the active tag when navigating into a project's detail page.
+// E.g. on /?tag=ux, clicking a project goes to /projects/X.html?tag=ux —
+// so the project's sidebar stays in UX-filtered mode.
+(function preserveTagOnProjectLinks() {
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="/projects/"]');
+    if (!a) return;
+    const currentTag = document.body.dataset.tagMode || (document.body.dataset.showArchived === '1' ? 'all' : '');
+    if (!currentTag) return;
+    e.preventDefault();
+    const url = new URL(a.href, window.location.origin);
+    url.searchParams.set('tag', currentTag);
+    window.location.href = url.toString();
+  });
 })();
 
 // On project detail pages: if the current project is archived, still let the

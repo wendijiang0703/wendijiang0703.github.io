@@ -155,22 +155,12 @@ def build_index():
         </div>
       </section>''')
 
-    # Big-card linear feed (used in tag mode). All projects, JS hides non-featured.
-    all_items = []
-    for year, projects in YEAR_GROUPS.items():
-        for slug, title in projects:
-            it = feed_item(slug, title)
-            if it: all_items.append(it)
-
     body = f'''      <div class="layout-grid" id="layout-grid">
 {chr(10).join(year_sections)}
-      </div>
-      <section class="feed" id="feed-primary" hidden>
-{chr(10).join(all_items)}
-      </section>'''
+      </div>'''
     (ROOT / 'index.html').write_text(layout(title='Wendi Jiang — Design', body=body, active='index'))
     total = sum(1 for ys in year_sections)
-    print(f"  index.html ({total} year sections, {len(all_items)} total items)")
+    print(f"  index.html ({total} year sections)")
 
 def build_about():
     text = PROJECTS.get('About', {}).get('description', '')

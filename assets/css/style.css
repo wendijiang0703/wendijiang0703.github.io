@@ -228,13 +228,42 @@ h1, h2, h3, p { margin: 0; padding: 0; font-weight: 400; }
 .layout-grid .feed-item[data-archived="true"] { display: none; }
 body[data-show-archived="1"] .layout-grid .feed-item[data-archived="true"] { display: block; }
 
-/* ---------- Big-card feed (tag mode only — product / ux / graphic) ---------- */
-.feed {
+/* ---------- Tag mode: re-layout year-grouped grid into single column of big cards ---------- */
+/* Same DOM, CSS-only transform. No duplicate rendering. */
+body[data-tag-mode="product"] .layout-grid,
+body[data-tag-mode="ux"] .layout-grid,
+body[data-tag-mode="graphic"] .layout-grid {
   display: flex;
   flex-direction: column;
   gap: var(--feed-gap);
 }
-.feed[hidden] { display: none; }
+body[data-tag-mode="product"] .year-section,
+body[data-tag-mode="ux"] .year-section,
+body[data-tag-mode="graphic"] .year-section { display: contents; }
+body[data-tag-mode="product"] .thumb-grid,
+body[data-tag-mode="ux"] .thumb-grid,
+body[data-tag-mode="graphic"] .thumb-grid { display: contents; }
+body[data-tag-mode="product"] .year-heading,
+body[data-tag-mode="ux"] .year-heading,
+body[data-tag-mode="graphic"] .year-heading { display: none; }
+/* Filter to only featured-in items */
+body[data-tag-mode="product"] .feed-item:not([data-featured~="product"]),
+body[data-tag-mode="ux"] .feed-item:not([data-featured~="ux"]),
+body[data-tag-mode="graphic"] .feed-item:not([data-featured~="graphic"]) { display: none; }
+/* Big-card styling: full-width image, larger title */
+body[data-tag-mode="product"] .feed-image,
+body[data-tag-mode="ux"] .feed-image,
+body[data-tag-mode="graphic"] .feed-image { aspect-ratio: auto; }
+body[data-tag-mode="product"] .feed-image img,
+body[data-tag-mode="ux"] .feed-image img,
+body[data-tag-mode="graphic"] .feed-image img { height: auto; object-fit: contain; }
+body[data-tag-mode="product"] .feed-title,
+body[data-tag-mode="ux"] .feed-title,
+body[data-tag-mode="graphic"] .feed-title { font-size: var(--feed-title-size); }
+body[data-tag-mode="product"] .feed-year,
+body[data-tag-mode="ux"] .feed-year,
+body[data-tag-mode="graphic"] .feed-year { display: inline; }
+
 .feed-item { display: block; width: 100%; }
 
 .feed-image {
