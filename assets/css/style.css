@@ -177,12 +177,17 @@ h1, h2, h3, p { margin: 0; padding: 0; font-weight: 400; }
   max-width: var(--main-max);
 }
 
-/* ---------- Sort pills ---------- */
+/* ---------- Sort pills — sticky on every page ---------- */
 .feed-controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   gap: var(--pill-gap);
   align-items: baseline;
-  margin-bottom: 2.5rem;
+  margin: calc(var(--page-pad-y) * -1) calc(var(--page-pad-x) * -1) 2.5rem;
+  padding: calc(var(--page-pad-y) * 0.6) var(--page-pad-x);
+  background: var(--bg);
   font-family: var(--font-mono);
   font-size: var(--pill-size);
   color: var(--text-muted);

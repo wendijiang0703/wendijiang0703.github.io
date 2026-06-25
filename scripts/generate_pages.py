@@ -75,6 +75,13 @@ def layout(*, title: str, body: str, active: str | None = None) -> str:
             return ''
     css_v = vh('assets/css/style.css')
     js_v = vh('assets/js/main.js')
+    pills = '\n          '.join(
+        f'<a href="/?tag={t}" data-tag="{t}">{t}</a>' for t in TAG_ORDER
+    )
+    pills_bar = f'''      <div class="feed-controls">
+        {pills}
+        <a href="/?tag=all" data-tag="all">all</a>
+      </div>'''
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,6 +98,7 @@ def layout(*, title: str, body: str, active: str | None = None) -> str:
       {render_sidebar(active)}
     </aside>
     <main class="main">
+{pills_bar}
 {body}
     </main>
   </div>
@@ -130,10 +138,7 @@ def feed_item(slug: str, title: str) -> str:
 def build_index():
     # Two layouts: year-grouped small thumb grid (default + all) and big-card
     # single-column (tag mode). JS swaps which one is visible.
-
-    pills = '\n          '.join(
-        f'<a href="?tag={t}" data-tag="{t}">{t}</a>' for t in TAG_ORDER
-    )
+    # Note: pill bar is rendered by layout() — global on every page.
 
     # Year-grouped grid (small thumbs)
     year_sections = []
@@ -157,11 +162,7 @@ def build_index():
             it = feed_item(slug, title)
             if it: all_items.append(it)
 
-    body = f'''      <div class="feed-controls">
-        {pills}
-        <a href="?tag=all" data-tag="all">all</a>
-      </div>
-      <div class="layout-grid" id="layout-grid">
+    body = f'''      <div class="layout-grid" id="layout-grid">
 {chr(10).join(year_sections)}
       </div>
       <section class="feed" id="feed-primary" hidden>

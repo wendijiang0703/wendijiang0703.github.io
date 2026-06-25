@@ -48,6 +48,9 @@ window.applyArchiveToDom = applyArchiveToDom; // tweak panel calls this
   const layoutGrid = document.getElementById('layout-grid');
   const bigFeed = document.getElementById('feed-primary');
   if (!controls) return;
+  // On non-homepage pages, pills are pure navigation: let the browser follow
+  // their href to /?tag=X. Don't intercept clicks.
+  if (!layoutGrid && !bigFeed) return;
 
   const bigItems = bigFeed ? Array.from(bigFeed.querySelectorAll('.feed-item')) : [];
 
