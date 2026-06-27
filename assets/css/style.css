@@ -488,10 +488,28 @@ body[data-tag-mode="graphic"] .menu-featured { display: none; }
 body[data-tag-mode="product"] .sidebar li[data-slug]:not([data-featured~="product"]),
 body[data-tag-mode="ux"] .sidebar li[data-slug]:not([data-featured~="ux"]),
 body[data-tag-mode="graphic"] .sidebar li[data-slug]:not([data-featured~="graphic"]) { display: none; }
-/* Numbered prefix on featured items doesn't make sense in tag-flat mode either */
-body[data-tag-mode="product"] .menu ul,
-body[data-tag-mode="ux"] .menu ul,
-body[data-tag-mode="graphic"] .menu ul { margin-bottom: 6px; }
+/* In tag mode, flatten the sidebar's year-grouped <ul>s into a single
+   flex column so all visible <li>s sit in one continuous run AND can be
+   reordered with the `order` property regardless of which year <ul>
+   they originally lived in. */
+body[data-tag-mode="product"] .sidebar .menu,
+body[data-tag-mode="ux"] .sidebar .menu,
+body[data-tag-mode="graphic"] .sidebar .menu { display: flex; flex-direction: column; }
+body[data-tag-mode="product"] .sidebar .menu ul,
+body[data-tag-mode="ux"] .sidebar .menu ul,
+body[data-tag-mode="graphic"] .sidebar .menu ul { display: contents; }
+/* About + IG always pinned to the bottom of the sidebar in tag mode */
+body[data-tag-mode="product"] .menu-about,
+body[data-tag-mode="ux"] .menu-about,
+body[data-tag-mode="graphic"] .menu-about { order: 998; }
+body[data-tag-mode="product"] .menu-ig,
+body[data-tag-mode="ux"] .menu-ig,
+body[data-tag-mode="graphic"] .menu-ig { order: 999; }
+
+/* Per-project priority in specific tag views (lower = earlier).
+   Add more rules here as Wendi wants to promote/demote particular projects. */
+body[data-tag-mode="ux"] .feed-item[data-slug="Both-Sides-Now"],
+body[data-tag-mode="ux"] .sidebar li[data-slug="Both-Sides-Now"] { order: -10; }
 
 /* Award callout */
 .award {
